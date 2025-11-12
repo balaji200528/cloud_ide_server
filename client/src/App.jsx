@@ -6,12 +6,13 @@ function App() {
 
 
   return (
-    <div>
-      <div>
+  <div className="playground-container">
+    <div className='editor-container'></div>
+      <div className='terminal-container'>
         <Terminal />
       </div>
-    </div>
-  )
+    </div> 
+)
 }
 
 export default App
