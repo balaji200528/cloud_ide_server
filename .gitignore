@@ -1,0 +1,9 @@
+# Node & build directories
+node_modules/
+dist/
+build/
+
+# Environment and editor configs
+.env
+.vscode/
+.DS_Store
