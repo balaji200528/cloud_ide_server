@@ -60,9 +60,42 @@
 
 
 
-import { Terminal as XTerminal } from '@xterm/xterm';
-import { useEffect, useRef } from 'react';
-import socket from '../socker';
+// import { Terminal as XTerminal } from '@xterm/xterm';
+// import { useEffect, useRef } from 'react';
+// import socket from '../socker';
+// import "@xterm/xterm/css/xterm.css";
+
+// const Terminal = () => {
+//   const terminalRef = useRef();
+//   const isRendered = useRef(false);
+
+//   useEffect(() => {
+//     if (isRendered.current) return;
+//     isRendered.current = true;
+//     const term = new XTerminal({
+//       rows: 20, // Number of visible rows in the terminal
+//     });
+
+//     term.open(terminalRef.current);
+
+//     // Capture input data
+//     term.onData((data) => {
+//       socket.emit('terminal:write', data); // Logs user input
+//     });
+//      
+
+//   }, []); 
+
+//   return <div ref={terminalRef} id="terminal" />;
+// };
+
+// export default Terminal;
+
+
+import { Terminal as XTerminal } from "@xterm/xterm";
+import { useEffect, useRef } from "react";
+import socket from "../socker";
+
 import "@xterm/xterm/css/xterm.css";
 
 const Terminal = () => {
@@ -72,19 +105,22 @@ const Terminal = () => {
   useEffect(() => {
     if (isRendered.current) return;
     isRendered.current = true;
+
     const term = new XTerminal({
-      rows: 20, // Number of visible rows in the terminal
+      rows: 20,
     });
 
     term.open(terminalRef.current);
 
-    // Capture input data
     term.onData((data) => {
-      socket.emit('terminal:write', data); // Logs user input
+      socket.emit("terminal:write", data);
     });
-    socket.on('terminal:data', (data) => {
-      term.write(data); // Write data received from server to terminal
-    });
+
+    function onTerminalData(data) {
+      term.write(data);
+    }
+
+    socket.on("terminal:data", onTerminalData);
   }, []);
 
   return <div ref={terminalRef} id="terminal" />;
