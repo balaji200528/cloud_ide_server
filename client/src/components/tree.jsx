@@ -34,15 +34,19 @@
 const FileTreeNode = ({ fileName, nodes, onSelect, path }) => {
   const isDir = !!nodes;
   return (
-    <div
-      onClick={(e) => {
-        e.stopPropagation();
-        if (isDir) return;
-        onSelect(path);
-      }}
-      style={{ marginLeft: "10px" }}
-    >
-      <p className={isDir ? "" : "file-node"}>{fileName}</p>
+    <div style={{ marginLeft: "10px" }}>
+  <p
+    onClick={(e) => {
+      e.stopPropagation();
+      if (!isDir) onSelect(path);
+    }}
+    className={!isDir ? "file-node" : ""}
+    style={{ cursor: isDir ? "default" : "pointer" }}
+  >
+    {fileName}
+  </p>
+
+
       {nodes && fileName !== "node_modules" && (
         <ul>
           {Object.keys(nodes).map((child) => (

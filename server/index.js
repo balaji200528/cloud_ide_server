@@ -54,9 +54,22 @@ io.on('connection',(socket) => {
 
     socket.emit('file:refresh')
 
-    // socket.on('file:change', async ({path: filePath, content}) => {
-    //     await 
+    // socket.on('file:change', async ({path, content}) => {
+    //     await fs.writeFile(`./user${path}`,content)
     // })
+    socket.on('file:change', async ({ path: filePath, content }) => {
+    const fullPath = `./user${filePath}`
+
+    const stat = await fs.stat(fullPath)
+
+    if (stat.isDirectory()) {
+        console.log("Attempted to write to a directory:", fullPath)
+        return; // ignore
+    }
+
+    await fs.writeFile(fullPath, content)
+})
+
 
     socket.on('terminal:write', (data)=>{
         ptyProcess.write(data);
@@ -68,11 +81,11 @@ app.get('/files', async (req, res) => {
     return res.json({ tree: fileTree })
 })
 
-// app.get('/files/content', async (req, res) => {
-//     const path = req.query.path;
-//     const content = await fs.readFile(`./user${path}`, 'utf-8')
-//     return res.json({ content })
-// })
+app.get('/files/content', async (req, res) => {
+    const path = req.query.path;
+    const content = await fs.readFile(`./user${path}`, 'utf-8')
+    return res.json({ content })
+})
 
 server.listen(9000, () => console.log(`🐳 Docker server running on port 9000`))
 

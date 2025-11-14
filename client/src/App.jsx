@@ -1,6 +1,6 @@
 
 import './App.css'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import Terminal from './components/terminal'
 import FileTree from './components/tree';
 import socket from './socker';
@@ -9,23 +9,48 @@ import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/ext-language_tools";
-
+ 
 function App() {
 
   const [fileTree ,setFileTree] = useState({});
   const [selectedFile, setSelectedFile] = useState("");
+  const [selectedFileContent, setSelectedFileContent]= useState("");
   const [code, setCode] = useState("// Your code goes here");
+
+
+  const isSaved = selectedFileContent === code;
   
   
   const getFileTree = async () => {
     const response = await fetch('http://localhost:9000/files');
-    const data = await response.json();
-    setFileTree(data.tree);
+    const result = await response.json();
+    setFileTree(result.tree);
   }
 
-  // useEffect(() => {
-  //   getFileTree();
-  // },[])
+  useEffect(() => {
+    getFileTree();
+  },[])
+
+  const getFileContents = useCallback(async () => {
+    if (!selectedFile) return ;
+    const response= await fetch(`http://localhost:9000/files/content?path=${selectedFile}`)
+    const result = await response.json();
+    setSelectedFileContent(result.content)
+  },[selectedFile])
+
+
+useEffect(() => {
+  if(selectedFile && selectedFileContent){
+    setCode(selectedFileContent)
+  }
+},[selectedFile, selectedFileContent])
+
+
+
+
+useEffect(() => {
+  if (selectedFile) getFileContents();
+},[getFileContents, selectedFile])
 
   useEffect(() => {
     socket.on("file:refresh", getFileTree);
@@ -34,10 +59,13 @@ function App() {
     };
   }, []);
 
+
+  
+
   useEffect(() => {
-    if(code) {
+    if(code && !isSaved) {
       const timer = setTimeout(() => {
-         socker.emit("file:change",{
+         socket.emit("file:change",{
           path: selectedFile,
           content: code
          })
@@ -46,7 +74,15 @@ function App() {
       clearTimeout(timer)
     }
   }
-},[code])
+},[code, selectedFile, isSaved])
+
+
+useEffect(() => {
+  setCode("")
+},[selectedFile])
+
+
+
   return (
   <div className="playground-container">
     <div className='editor-container'>
@@ -56,7 +92,7 @@ function App() {
          tree={fileTree} />
       </div>
       <div className='editor'>
-        {selectedFile && <p>{selectedFile.replaceAll("/", " > ")}</p>}
+        {selectedFile && <p>{selectedFile.replaceAll("/", " > ")}{isSaved ? " Saved" : " Unsaved"}</p>}
         <AceEditor 
           value={code}
           onChange={(e) => setCode(e)}
