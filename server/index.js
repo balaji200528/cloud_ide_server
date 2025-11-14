@@ -33,10 +33,11 @@ const io = new SockerServer({
     cors: '*'
 })
 
-
+ 
 app.use(cors())
 io.attach(server);
-
+ 
+ 
 chokidar.watch('./user').on('all',(event, path)=> {
     // console.log(event, path);
     io.emit('file:refresh', path)
@@ -52,6 +53,10 @@ io.on('connection',(socket) => {
     console.log('Socket connected', socket.id)
 
     socket.emit('file:refresh')
+
+    // socket.on('file:change', async ({path: filePath, content}) => {
+    //     await 
+    // })
 
     socket.on('terminal:write', (data)=>{
         ptyProcess.write(data);
